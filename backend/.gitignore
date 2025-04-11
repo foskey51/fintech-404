@@ -1,0 +1,52 @@
+# 🐍 Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+env/
+venv/
+fraud-404-env/
+.fraud-404-env/
+.venv/
+
+# 📦 Python packaging
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 🔍 IDEs & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 🚀 FastAPI & Uvicorn logs
+*.log
+logs/
+
+# 📊 Jupyter / Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# 💾 OS files
+.DS_Store
+Thumbs.db
+
+# 📁 Environment files
+.env
+.env.*
+
+# 🔍 Model / data files
+*.pkl
+*.joblib
+*.h5
+*.model
+*.csv
+*.json
+
+# ⚙️ Docker
+docker-compose.override.yml
