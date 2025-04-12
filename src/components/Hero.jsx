@@ -3,10 +3,12 @@ import { cn } from "../lib/util";
 import { motion, AnimatePresence } from "motion/react";
 import React, { useRef, useState, useEffect } from "react";
 import { PiMouseSimple } from "react-icons/pi";
+import { useNavigate } from "react-router-dom";
 
 const Hero = ({
     children,
     className
+
 }) => {
     const containerRef = useRef(null);
     const parentRef = useRef(null);
@@ -64,12 +66,13 @@ const Hero = ({
         },
     ];
 
+    const navigate = useNavigate();
+
     return (
         <div
             ref={parentRef}
             className={cn(
                 "h-screen  bg-gradient-to-b from-white to-neutral-100 dark:from-neutral-950 dark:to-neutral-950 relative flex items-center w-full justify-center overflow-hidden",
-                // h-screen if you want bigger
                 className
             )}>
             {beams.map((beam) => (
@@ -83,7 +86,7 @@ const Hero = ({
 
             {/* NavBar*/}
             <div className="flex p-6 justify-between absolute top-0 left-0 text-white ">
-                <img src="../public/logo.png"   className="size-15 mix-blend-screen"></img>
+                <img src="/logo.png"   className="size-15 mix-blend-screen"></img>
                 <a className="text-4xl font-bold mt-4 ">ranSec</a>
             </div>
 
@@ -100,7 +103,7 @@ const Hero = ({
                                 Stay ahead of fraud with smart, predictive analytics with <span className="font-bold text-gray-300">TranSec</span>
                             </h1>
                             <div className="flex justify-center">
-                            <button className=' mt-8 bg-transparent border-2 border-[#B87BFF]  p-4 pl-9 pr-9 rounded-xl hover:bg-[#7C80FF] tracking-widest text-2xl'>Try Now</button>
+                            <button onClick={() => navigate('/dashboard')} className=' mt-8 bg-transparent border-2 border-[#B87BFF]  p-4 pl-9 pr-9 rounded-xl hover:bg-[#7C80FF] tracking-widest text-2xl'>Try Now</button>
                             </div>
                         </div>
                     </div>

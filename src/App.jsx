@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import "./App.css"
-import Hero from './components/Hero';
+import DashBoard from './components/DashBoard';
+import { Route, Routes } from 'react-router-dom';
+import { Features } from 'tailwindcss';
+import HomePage from './components/HomePage';
 
 const App = () => {
   return (
     <>
-      <div className='flex h-full w-full'>
-        <Hero />
-      </div>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/dashboard" element={<DashBoard />} />
+    </Routes>
     </>
   ) 
 }
