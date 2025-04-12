@@ -1,84 +1,73 @@
 import pandas as pd
 import joblib
 import shap
-import matplotlib.pyplot as plt
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 # Load saved LightGBM model and encoder
 model = joblib.load('lightgbm_model.pkl')
 encoder = joblib.load('encoder.pkl')
 
-def predict_transaction(transaction_dict):
-    # Drop name fields to match training schema
-    transaction_dict.pop('nameOrig', None)
-    transaction_dict.pop('nameDest', None)
+# Initialize SHAP explainer (tree explainer is fastest for LightGBM)
+explainer = shap.Explainer(model)
 
-    input_df = pd.DataFrame([transaction_dict])
+app = Flask(__name__)
+CORS(app)
 
-    # Encode categorical
-    input_encoded = encoder.transform(input_df)
+def batch_predict(transactions):
+    df = pd.DataFrame(transactions)
+    df = df.drop(columns=["nameOrig", "nameDest"], errors='ignore')
 
-    # Predict fraud (class) and probability
-    prediction = model.predict(input_encoded)[0]
-    probabilities = model.predict_proba(input_encoded)[0][1]  # Probability of fraud
+    encoded = encoder.transform(df)
 
-    # Apply thresholds
-    if probabilities >= 0.9:
-        label = "!! Fraud !!"
-    elif 0.5 <= probabilities < 0.9:
-        label = "Manual Review"
-    else:
-        label = " ** Legitimate ** "
+    # Predictions
+    predictions = model.predict(encoded)
+    probs = model.predict_proba(encoded)[:, 1]
 
-    result = {
-        "prediction": int(prediction),
-        "fraud_probability": round(probabilities * 100, 2),
-        "status": label
-    }
+    # SHAP explanations
+    shap_values = explainer(encoded)
 
-    return result, input_encoded
+    results = []
+    for i, (pred, prob) in enumerate(zip(predictions, probs)):
+        if prob >= 0.9:
+            status = "Fraud"
+        elif 0.5 <= prob < 0.9:
+            status = "Manual Review"
+        else:
+            status = "Legitimate"
 
-# Example transaction
-new_txn = {
-    'step': 1,
-    'type': 'TRANSFER',
-    'amount': 250000.0,
-    'nameOrig': 'C999999999',  # dropped
-    'oldbalanceOrg': 900000.0,
-    'newbalanceOrig': 850000.0,
-    'nameDest': 'C111111111',  # dropped
-    'oldbalanceDest': 100000.0,
-    'newbalanceDest': 350000.0
-}
+        # Get SHAP values and top 3 contributing features
+        feature_names = df.columns
+        shap_vals = shap_values[i].values
+        top_indices = abs(shap_vals).argsort()[::-1][:3]
 
-fraud_txn ={
-    'step': 1,
-    'type': 'TRANSFER',
-    'amount': 100000.0,
-    'nameOrig': 'C123456789',  # dropped
-    'oldbalanceOrg': 100000.0,
-    'newbalanceOrig': 0.0,  
-    'nameDest': 'C987654321',  # dropped
-    'oldbalanceDest': 0.0,
-    'newbalanceDest': 0.0 
-}
+        contributions = [
+            {"feature": feature_names[idx], "impact": round(shap_vals[idx], 4)}
+            for idx in top_indices
+        ]
 
-manual_review_txn = {
-    'step': 150,
-    'type': 'TRANSFER',
-    'amount': 50000.0,
-    'nameOrig': 'C345678901',  # dropped
-    'oldbalanceOrg': 50000.0,
-    'newbalanceOrig': 0.0,
-    'nameDest': 'C123456789',  # dropped
-    'oldbalanceDest': 0.0,
-    'newbalanceDest': 50000.0
-}
+        results.append({
+            "prediction": int(pred),
+            "fraud_probability": round(prob * 100, 2),
+            "status": status,
+            "explanation": contributions
+        })
 
+    return results
 
-# Run prediction
-result, input_encoded = predict_transaction(manual_review_txn)
+@app.route('/predict', methods=['POST'])
+def predict_endpoint():
+    try:
+        data = request.get_json()
 
-# Print results
-print(f"Prediction: {result['prediction']}")
-print(f"Probability of Fraud: {result['fraud_probability']}%")
-print(f"Status: {result['status']}")
+        if not isinstance(data, list):
+            return jsonify({"error": "Expected a JSON array of transaction dictionaries"}), 400
+
+        results = batch_predict(data)
+        return jsonify(results)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
