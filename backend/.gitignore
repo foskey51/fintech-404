@@ -41,7 +41,6 @@ Thumbs.db
 .env.*
 
 # 🔍 Model / data files
-*.pkl
 *.joblib
 *.h5
 *.model
