@@ -2,6 +2,7 @@
 import { cn } from "../lib/util";
 import { motion, AnimatePresence } from "motion/react";
 import React, { useRef, useState, useEffect } from "react";
+import { PiMouseSimple } from "react-icons/pi";
 
 const Hero = ({
     children,
@@ -98,9 +99,16 @@ const Hero = ({
                             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent leading-tight">
                                 Stay ahead of fraud with smart, predictive analytics with <span className="font-bold text-gray-300">TranSec</span>
                             </h1>
+                            <div className="flex justify-center">
+                            <button className=' mt-8 bg-transparent border-2 border-[#B87BFF]  p-4 pl-9 pr-9 rounded-xl hover:bg-[#7C80FF] tracking-widest text-2xl'>Try Now</button>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div className="flex mt-auto pb-10 ">
+                <PiMouseSimple color="white" size={50}  />
             </div>
 
 
